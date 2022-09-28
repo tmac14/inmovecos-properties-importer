@@ -43,7 +43,7 @@ def download() -> None:
         # Download house images
         images = house.findAll('imagen')
         current_photos = []
-        """
+
         for image in images:
             imageUrl = image.attrs['url']
             filename = imageUrl.split("/")[-1]
@@ -79,6 +79,5 @@ def download() -> None:
                 photo_path = os.path.join(folder_path, photo)
                 os.remove(photo_path)
 
-        """
 if __name__ == "__main__":
     download()
