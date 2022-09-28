@@ -2,7 +2,7 @@ import json
 import datetime
 
 from house_class import House
-from witei_api import WiteiApi
+from witei_api_class import WiteiApi
 from util import *
 
 #TODO: Rellenar todos los datos de la propiedad a subir en vaules. Logger
