@@ -14,8 +14,6 @@ houses = soup.findAll('propiedad')
 
 
 def download() -> None:
-    properties_changed = []
-    
     for house in houses:
         house_id = house.referencia.text.strip()
         folder_path = os.path.join('assets', house_id)
@@ -35,8 +33,6 @@ def download() -> None:
                 f.write(datasheet_content)
                 
             if not filecmp.cmp(datasheet_path, datasheet_temp_path):
-                properties_changed.append(house_id)
-
                 with open(datasheet_path, 'wb') as d:
                     d.write(datasheet_content)
 
@@ -48,7 +44,7 @@ def download() -> None:
         
         for image in images:
             image_url = image.attrs['url']
-            filename = image_url.split("/")[-1]
+            filename = normalize_filename(image_url.split("/")[-1])
             image_path = os.path.join(folder_path, filename)
             image_temp_path = os.path.join(folder_path, filename + '.tmp')
 
@@ -70,8 +66,6 @@ def download() -> None:
                     photo_is_equal = compare_images(image_path, image_temp_path)
 
                     if not photo_is_equal:
-                        properties_changed.append(house_id)
-                        
                         with open(image_path, 'wb') as f:
                             shutil.copyfileobj(r.raw, f)
 
@@ -88,9 +82,13 @@ def download() -> None:
                 photo_path = os.path.join(folder_path, photo)
                 os.remove(photo_path)
 
-    with open('properties_changed.txt', 'w') as f:
-        for house in properties_changed:
-            f.write("%s\n" % house)
+def normalize_filename(name):
+    file_split = name.split('.')
+    file_name = "".join(file_split[:-1])
+    file_type = file_split[-1]
+    file_name_normalized = normalize_string(file_name)
+
+    return "%s.%s" % (file_name_normalized, file_type)
 
 
 if __name__ == "__main__":
