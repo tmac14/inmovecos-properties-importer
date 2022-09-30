@@ -60,6 +60,5 @@ def normalize_string(value):
         r"([^n\u0300-\u036f]|n(?!\u0303(?![\u0300-\u036f])))[\u0300-\u036f]+", r"\1", 
         normalize( "NFD", value)
     )
-    s = re.sub(r"[^a-zA-Z0-9]+", "", s)
 
     return s
