@@ -1,6 +1,5 @@
 import os
 import mimetypes
-from urllib import response
 import requests
 
 
