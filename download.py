@@ -18,7 +18,7 @@ def download() -> None:
         house_id = house.referencia.text.strip()
         folder_path = os.path.join('assets', house_id)
         datasheet_path = os.path.join(folder_path, 'datasheet.xml')
-        datasheet_temp_path = os.path.join(folder_path, 'datasheet.xml.tmp')
+        datasheet_tmp_path = os.path.join(folder_path, 'datasheet.xml.tmp')
         datasheet_content = house.prettify('utf-8')
 
         if not os.path.isdir(folder_path):
@@ -29,14 +29,14 @@ def download() -> None:
             with open(datasheet_path, 'wb') as f:
                 f.write(datasheet_content)
         else:
-            with open(datasheet_temp_path, 'wb') as f:
+            with open(datasheet_tmp_path, 'wb') as f:
                 f.write(datasheet_content)
                 
-            if not filecmp.cmp(datasheet_path, datasheet_temp_path):
+            if not filecmp.cmp(datasheet_path, datasheet_tmp_path):
                 with open(datasheet_path, 'wb') as d:
                     d.write(datasheet_content)
 
-            os.remove(datasheet_temp_path)
+            os.remove(datasheet_tmp_path)
 
         # Download house images
         images = house.findAll('imagen')
@@ -46,7 +46,7 @@ def download() -> None:
             image_url = image.attrs['url']
             filename = normalize_filename(image_url.split("/")[-1])
             image_path = os.path.join(folder_path, filename)
-            image_temp_path = os.path.join(folder_path, filename + '.tmp')
+            image_tmp_path = os.path.join(folder_path, filename + '.tmp')
 
             # Open the url image, set stream to True, this will return the stream content.
             r = requests.get(image_url, stream=True)
@@ -60,16 +60,16 @@ def download() -> None:
                     with open(image_path, 'wb') as f:
                         shutil.copyfileobj(r.raw, f)
                 else:
-                    with open(image_temp_path, 'wb') as f:
+                    with open(image_tmp_path, 'wb') as f:
                         shutil.copyfileobj(r.raw, f)
-                    
-                    photo_is_equal = compare_images(image_path, image_temp_path)
+                        
+                    photo_is_equal = compare_images(image_path, image_tmp_path)
 
                     if not photo_is_equal:
                         with open(image_path, 'wb') as f:
                             shutil.copyfileobj(r.raw, f)
 
-                    os.remove(image_temp_path)
+                    os.remove(image_tmp_path)
                 
                 current_photos.append(filename)
 
