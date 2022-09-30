@@ -1,3 +1,7 @@
 assets
 .idea
 __pycache__
+test.py
+*.txt
+*.xml
+*.tmp

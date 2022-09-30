@@ -1,12 +1,14 @@
-from lzma import FILTER_LZMA2
 import os
 import imghdr
-from PIL import Image, ImageChops
+import cv2
+import numpy
 
 def get_all_assets(asset_path):
     folders_path = []
+
     for name in os.listdir(asset_path):
         folder_path = os.path.join(asset_path, name)
+        
         if os.path.isdir(folder_path):
             folders_path.append(folder_path)
 
@@ -14,32 +16,39 @@ def get_all_assets(asset_path):
 
 def get_all_asset_photos(asset_path):
     photos = []
+
     for name in os.listdir(asset_path):
         photo_path = os.path.join(asset_path, name)
+        
         if imghdr.what(photo_path):
             photos.append(photo_path)
 
     return photos
 
+def compare_files(base_file, compare_file):
+    with open(base_file, 'r', encoding='UTF-8') as fb, open(compare_file, 'r', encoding='UTF-8') as fc:
+        base_file_line = fb.readline()
+        compare_file_line = fc.readline()
+        files_are_equals = True
 
-def compare_image_pixels(base_image, compare_image):
-    """
-    Calculates the bounding box of the non-zero regions in the image.
-    :param base_image: target image to find
-    :param compare_image: set of images containing the target image
-    :return The bounding box is returned as a 4-tuple defining the 
-            left, upper, rightm and lower pixel coordinate. If the image
-            is completly empty, this method returns None.
-    """
-    # Returns the absolute value of the pixel-by-pixel
-    # difference between two images.
+        while base_file_line != '' or compare_file_line != '':
+            base_file_line = base_file_line.rstrip()
+            compare_file_line = compare_file_line.rstrip()
+            
+            if base_file_line != compare_file_line:
+                print("Base Line: %s\nCompare Line: %s" % (base_file_line, compare_file_line))
+                files_are_equals = False
+                break
 
-    diff = ImageChops.difference(base_image, compare_image)
-    if diff.getbbox():
-        return False
-    else:
-        return True
+            base_file_line = fb.readline()
+            compare_file_line = fc.readline()
 
-def compare_file_bytes(base_file, compare_file):
-    with open(base_file, 'rb') as f:
-         return f.read() == compare_file
+        return files_are_equals
+
+def compare_images(base_file, compare_file):
+    base_file = cv2.imread(base_file)
+    compare_file = cv2.imread(compare_file)
+    diff = cv2.subtract(base_file, compare_file)
+    result = not numpy.any(diff)
+
+    return result == True
