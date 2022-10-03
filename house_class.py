@@ -27,7 +27,7 @@ class House:
             self.region = house_data.localizacion.provincia.text.strip()
             self.city = house_data.localizacion.poblacion.text.strip()
             self.zone = house_data.localizacion.zona.text.strip()
-            if (house_data.localizacion.longitude):
+            if (house_data.localizacion.longitud):
                 self.longitude = float(house_data.localizacion.longitud.text.strip()) \
                 if house_data.localizacion.longitud.text.strip() else 0
             if (house_data.localizacion.latitud):

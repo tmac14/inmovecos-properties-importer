@@ -1,46 +1,49 @@
 import os
 import mimetypes
 import requests
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class WiteiApi:
-    token = '4a059a6ffe6d4e88b135b724adbd949e'
-    endpoint_house_upload = 'https://witei.com/api/v1/houses/'
-    endpoint_house_update = 'https://witei.com/api/v1/houses/{house_id}/'
-    endpoint_photo_upload = 'https://witei.com/api/v1/houses/{house_id}/pictures/?'
-
     @staticmethod
     def store(data) -> requests:
         headers = {
-            'Authorization': f'Bearer {WiteiApi.token}',
+            'Authorization': f'Bearer {os.getenv("WITEI_TOKEN")}',
             'Content-Type':  'application/json'
         }
 
-        response = requests.post(WiteiApi.endpoint_house_upload, data=data, headers=headers)
+        response = requests.post(os.getenv("ENDPOINT_HOUSE_UPLOAD"), data=data, headers=headers)
 
         return response
 
     @staticmethod
     def update(house_id, data) -> requests:
         headers = {
-            'Authorization': f'Bearer {WiteiApi.token}',
+            'Authorization': f'Bearer {os.getenv("WITEI_TOKEN")}',
             'Content-Type':  'application/json'
         }
 
-        response = requests.put(WiteiApi.get_house_endpoint_formatted(house_id, WiteiApi.endpoint_house_update), data=data, headers=headers)
-
+        response = requests.put(WiteiApi.get_house_endpoint_formatted(house_id, os.getenv("ENDPOINT_HOUSE_UPDATE")), data=data, headers=headers)
+   
         return response
 
     @staticmethod
-    def search(house_id) -> requests:
-        #TODO
-        response = ''
+    def search_by_id(house_id) -> int or bool:
         headers = {
-            'Authorization': f'Bearer {WiteiApi.token}',
+            'Authorization': f'Bearer {os.getenv("WITEI_TOKEN")}',
             'Content-Type':  'application/json'
         }
 
-        return response
+        response = requests.get(WiteiApi.get_house_endpoint_formatted(house_id, os.getenv("ENDPOINT_HOUSE_SEARCH_BY_ID")), headers=headers)
+        
+        if 200 == response.status_code:
+            data = response.json()
+            
+            if data['count']:
+                return data['results'][0]['id']
+
+        return False
 
     @staticmethod
     def upload_photo(house_id, file_path) -> requests:
@@ -49,12 +52,12 @@ class WiteiApi:
         file = [('pic', (file_name, open(file_path, 'rb'), file_mime))]
 
         headers = {
-            'Authorization': f'Bearer {WiteiApi.token}',
+            'Authorization': f'Bearer {os.getenv("WITEI_TOKEN")}',
             'Content-Type': 'multipart/form-data'
         }
-
-        response = requests.post(WiteiApi.get_house_endpoint_formatted(house_id, WiteiApi.endpoint_photo_upload), files=file, headers=headers)
-
+        
+        response = requests.post(WiteiApi.get_house_endpoint_formatted(house_id, os.getenv("ENDPOINT_PICTURE_UPLOAD")), files=file, headers=headers)
+        print(response.content)
         return response
 
     @staticmethod

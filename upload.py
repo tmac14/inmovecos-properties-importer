@@ -1,6 +1,4 @@
 import json
-import datetime
-
 from house_class import House
 from witei_api_class import WiteiApi
 from util import *
@@ -8,6 +6,7 @@ from util import *
 #TODO: Rellenar todos los datos de la propiedad a subir en vaules. Logger
 def upload():
     assets = get_all_assets('assets')
+
     for asset in assets:
         house_datasheet = os.path.join(asset, 'datasheet.xml')
         house = House(house_datasheet)
@@ -26,27 +25,30 @@ def upload():
         values = json.dumps(values).encode('utf-8')
 
         witei_api = WiteiApi()
+        house_internal_id = witei_api.search_by_id(house.reference)
 
-        #TODO: check when datasheet has been updated to prevent update properties with the same content
-        if not witei_api.search(house.reference):
+        if not house_internal_id:
             response = witei_api.store(values)
+            data = response.json()
+            house_internal_id = data['id']
+            action = 'Cargando'
         else:
-            response = witei_api.update(house.reference, values)
+            response = witei_api.update(house_internal_id, values)
+            action = 'Actualizando'
 
         code = response.status_code
-        data = response.json()
 
-        if 201 != code:
+        if code not in [200, 201]:
             #TODO: handle errors
-            print(data)
+            print(code)
         else:
-            print(f'Cargando la propiedad con referencia: {house.reference}')
+            print(f'{action} la propiedad con referencia: {house.reference} ({house_internal_id})')
 
-            house_id = data['id']
             files = house.photos
+            
             #TODO: add/remove/replace photos
             for photo in files:
-                WiteiApi.upload_photo(house_id, photo)
+                WiteiApi.upload_photo(house_internal_id, photo)
 
 
 if __name__ == "__main__":

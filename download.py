@@ -4,6 +4,7 @@ import os
 import filecmp
 import shutil
 import ntpath
+import json
 from util import *
 
 # Inmoweb feed endpoint for create a XML file with all properties registered in the software for Inmovecos Real Estate
@@ -40,21 +41,24 @@ def download() -> None:
 
         # Download house images
         images = house.findAll('imagen')
-        current_photos = []
+        current_photos = {}
+        photos_registry_path = os.path.join(folder_path, 'photos_registry.json')
+        old_photos = get_photos_registry(photos_registry_path)
         
         for image in images:
             image_url = image.attrs['url']
-            filename = normalize_filename(image_url.split("/")[-1])
-            image_path = os.path.join(folder_path, filename)
-            image_tmp_path = os.path.join(folder_path, filename + '.tmp')
-
             # Open the url image, set stream to True, this will return the stream content.
             r = requests.get(image_url, stream=True)
 
-            if r.status_code == 200:
+            if 200 == r.status_code:
                 # Set decode_content value to True, otherwise the downloaded image file's size will be zero.
                 r.raw.decode_content = True
-                photo_exists = os.path.isfile(image_path)
+                filename = image_url.split("/")[-1]
+                filename_normalized = normalize_string(filename)
+                photo_exists = True if old_photos and filename_normalized in old_photos else False
+                filename_hashed = old_photos[filename_normalized] if photo_exists else get_unique_filename(filename_normalized)
+                image_path = os.path.join(folder_path, filename_hashed)
+                image_tmp_path = os.path.join(folder_path, filename_hashed + '.tmp')
 
                 if not photo_exists:
                     with open(image_path, 'wb') as f:
@@ -71,24 +75,37 @@ def download() -> None:
 
                     os.remove(image_tmp_path)
                 
-                current_photos.append(filename)
+                current_photos[filename_normalized] = filename_hashed 
+
+        # Store current photos registry
+        with open(photos_registry_path, 'w') as f:
+            f.write(json.dumps(current_photos, indent=2))
 
         # Update asset's pictures. Remove the photos that are no longer present.
         # Extract only the filename in the path. Compare it with the list of new photos 
-        path_photos = list(map(lambda p: ntpath.basename(p), get_all_asset_photos(folder_path)))
+        stored_photos = list(map(lambda p: ntpath.basename(p), get_all_asset_photos(folder_path)))
 
-        for photo in path_photos:
-            if photo not in current_photos:
+        for photo in stored_photos:
+            if not photo in current_photos.values():
                 photo_path = os.path.join(folder_path, photo)
                 os.remove(photo_path)
 
-def normalize_filename(name):
+def get_unique_filename(name):
     file_split = name.split('.')
-    file_name = "".join(file_split[:-1])
+    filename = "".join(file_split[:-1])
     file_type = file_split[-1]
-    file_name_normalized = normalize_string(file_name)
+    filename_hashed = get_unique_hash_from_string(filename)
 
-    return "%s.%s" % (file_name_normalized, file_type)
+    return "%s.%s" % (filename_hashed, file_type)
+
+def get_photos_registry(path):
+    result = None
+
+    if os.path.isfile(path):
+        with open(path, 'r') as f:
+            result = json.load(f)
+    
+    return result
 
 
 if __name__ == "__main__":
