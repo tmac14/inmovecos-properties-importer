@@ -3,7 +3,7 @@ import mimetypes
 import requests
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv('.env.local')
 
 class WiteiApi:
     @staticmethod
