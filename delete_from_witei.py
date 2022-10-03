@@ -4,7 +4,7 @@ import json
 import math
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv('.env.local')
 
 headers = {
     'Authorization': f'Bearer {os.getenv("WITEI_TOKEN")}',
