@@ -56,7 +56,7 @@ class WiteiApi:
         }
         
         response = requests.post(WiteiApi.get_house_endpoint_formatted(house_id, os.getenv("ENDPOINT_PICTURE_UPLOAD")), files=file, headers=headers)
-        print(response.content)
+        
         return response
 
     @staticmethod
