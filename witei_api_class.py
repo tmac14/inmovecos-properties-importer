@@ -52,8 +52,7 @@ class WiteiApi:
         file = [('pic', (file_name, open(file_path, 'rb'), file_mime))]
 
         headers = {
-            'Authorization': f'Bearer {os.getenv("WITEI_TOKEN")}',
-            'Content-Type': 'multipart/form-data'
+            'Authorization': f'Bearer {os.getenv("WITEI_TOKEN")}'
         }
         
         response = requests.post(WiteiApi.get_house_endpoint_formatted(house_id, os.getenv("ENDPOINT_PICTURE_UPLOAD")), files=file, headers=headers)
